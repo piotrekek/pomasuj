@@ -724,39 +724,39 @@
 
         async function uploadPhoto() {
             if (!currentUser) { showToast('❌ Nie jesteś zalogowany'); return; }
-
             const fileInput = document.getElementById('fileInput');
             const status = document.getElementById('uploadStatus');
-
             if (!fileInput.files[0]) {
                 status.innerText = '❌ Wybierz plik!';
                 return;
             }
-
             const file = fileInput.files[0];
             if (file.size > 5 * 1024 * 1024) {
                 status.innerText = '❌ Maksymalnie 5 MB';
                 return;
             }
 
-            status.innerText = '⏳ Przesyłanie...';
+            status.innerText = '⏳ Wysyłanie do serwera...';
+
+    
+            const IMGBB_API_KEY = '0cadfc7d236e0c46dc36343b22964fa9';   
+
+            const formData = new FormData();
+            formData.append('key', IMGBB_API_KEY);
+            formData.append('image', file);
 
             try {
-        // 
-                const timestamp = Date.now();
-                const fileName = `${currentUser.nick}_${timestamp}_${file.name}`;
-                const storageRef = firebase.storage().ref();
-                const fileRef = storageRef.child(`posts/${fileName}`);
+                const res = await fetch('https://api.imgbb.com/1/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error?.message || 'Błąd ImgBB');
 
-        
-                await fileRef.put(file);
+                const imageUrl = data.data.url; // lub data.data.display_url
 
-        
-                const downloadUrl = await fileRef.getDownloadURL();
-
-        // 
                 await db.collection('posts').add({
-                    imageUrl: downloadUrl,      // teraz URL z Storage!
+                    imageUrl: imageUrl,
                     author: currentUser.nick,
                     likes: 0,
                     likedBy: [],
@@ -769,6 +769,7 @@
             } catch (e) {
                 status.innerText = '❌ Błąd: ' + e.message;
                 console.error(e);
+                showToast('❌ ' + e.message);
             }
                 }
 
