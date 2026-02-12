@@ -7,6 +7,7 @@
     <!-- Firebase SDK (CDN) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -733,32 +734,43 @@
             }
 
             const file = fileInput.files[0];
-            if (file.size > 10 * 1024 * 1024) {
+            if (file.size > 5 * 1024 * 1024) {
                 status.innerText = '❌ Maksymalnie 5 MB';
                 return;
             }
 
             status.innerText = '⏳ Przesyłanie...';
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                try {
-                    await db.collection('posts').add({
-                        imageUrl: reader.result,
-                        author: currentUser.nick,
-                        likes: 0,
-                        likedBy: [],
-                        comments: [],
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    status.innerText = '✅ Opublikowano!';
-                    fileInput.value = '';
-                } catch (e) {
-                    status.innerText = '❌ Błąd: ' + e.message;
-                    console.error(e);
+
+            try {
+        // 
+                const timestamp = Date.now();
+                const fileName = `${currentUser.nick}_${timestamp}_${file.name}`;
+                const storageRef = firebase.storage().ref();
+                const fileRef = storageRef.child(`posts/${fileName}`);
+
+        
+                await fileRef.put(file);
+
+        
+                const downloadUrl = await fileRef.getDownloadURL();
+
+        // 
+                await db.collection('posts').add({
+                    imageUrl: downloadUrl,      // teraz URL z Storage!
+                    author: currentUser.nick,
+                    likes: 0,
+                    likedBy: [],
+                    comments: [],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                status.innerText = '✅ Opublikowano!';
+                fileInput.value = '';
+            } catch (e) {
+                status.innerText = '❌ Błąd: ' + e.message;
+                console.error(e);
+            }
                 }
-            };
-        }
 
         function renderPost(post) {
             const card = document.createElement('div');
