@@ -3,280 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Masuj Mi</title>
-    <!-- Firebase SDK (CDN) -->
+    <title>masuj – notatki w profilu</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
-
         :root {
-            --bg: linear-gradient(145deg, #fff5eb 0%, #ffeade 100%);
-            --surface: rgba(255, 255, 255, 0.85);
-            --surface-solid: #ffffff;
-            --text: #1a1a1a;
-            --text-soft: #4d4d4d;
-            --accent: #ff8c00;
-            --accent-dark: #e67300;
-            --accent-light: #ffe0b3;
-            --border: rgba(255, 140, 0, 0.3);
-            --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            --glow: 0 0 0 3px rgba(255, 140, 0, 0.2);
-            --like: #ff8c00;
-            --toast-bg: #2d2d2d;
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --card: #242424;
+            --text: #f0f0f0;
+            --text-soft: #a0a0a0;
+            --accent: #ff6b00;
+            --accent-hover: #ff8533;
+            --border: #333;
+            --shadow: 0 8px 24px rgba(0,0,0,0.5);
+            --glow: 0 0 0 2px rgba(255,107,0,0.3);
         }
-
-        body.dark-mode {
-            --bg: linear-gradient(145deg, #0a0a0a 0%, #000000 100%);
-            --surface: rgba(10, 10, 10, 0.9);
-            --surface-solid: #121212;
-            --text: #f2f2f2;
-            --text-soft: #bfbfbf;
-            --accent: #ffa500;
-            --accent-dark: #cc8400;
-            --accent-light: #332211;
-            --border: rgba(255, 165, 0, 0.5);
-            --shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
-            --glow: 0 0 0 3px rgba(255, 165, 0, 0.3);
-            --like: #ffa500;
-            --toast-bg: #1a1a1a;
-        }
-
         body {
             background: var(--bg);
             color: var(--text);
             padding: 16px 12px;
             min-height: 100vh;
-            transition: background 0.2s, color 0.2s;
-            backdrop-filter: blur(4px);
         }
+        .container { max-width: 600px; margin: 0 auto; }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            width: 100%;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        .fade-in { animation: fadeIn 0.3s ease; }
 
         .auth-screen {
-            background: var(--surface-solid);
-            backdrop-filter: blur(12px);
-            border-radius: 36px;
+            background: var(--surface);
+            border-radius: 32px;
             padding: 40px 24px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--border);
+            max-width: 400px;
+            margin: 40px auto;
             text-align: center;
-            max-width: 460px;
-            margin: 20px auto;
-            width: 100%;
         }
-
         .auth-screen h2 {
             font-size: 28px;
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 28px;
-            background: linear-gradient(135deg, #ff8c00, #ffb347);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--accent);
         }
-
         .auth-screen input {
             width: 100%;
             padding: 14px 18px;
             margin-bottom: 14px;
-            border: 2px solid var(--border);
-            border-radius: 60px;
+            border: 1px solid var(--border);
+            border-radius: 40px;
             font-size: 16px;
-            background: rgba(255,255,255,0.9);
+            background: var(--card);
             color: var(--text);
             outline: none;
-            transition: all 0.2s;
-            -webkit-appearance: none;
+            transition: 0.2s;
         }
-
         .auth-screen input:focus {
             border-color: var(--accent);
             box-shadow: var(--glow);
         }
-
         .auth-screen button {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 14px 20px;
-            border-radius: 60px;
-            font-weight: 700;
+            padding: 14px 24px;
+            border-radius: 40px;
+            font-weight: 600;
             font-size: 16px;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 6px 14px rgba(255, 140, 0, 0.3);
             width: 100%;
-            margin-top: 8px;
+            transition: 0.2s;
         }
-
         .auth-screen button:hover {
-            background: var(--accent-dark);
-            transform: scale(1.01);
+            background: var(--accent-hover);
+            transform: scale(1.02);
         }
-
         .auth-switch {
-            margin-top: 24px;
+            margin-top: 20px;
             color: var(--text-soft);
             cursor: pointer;
-            text-decoration: underline;
-            font-size: 15px;
+            font-size: 14px;
+            transition: color 0.2s;
         }
-
+        .auth-switch:hover { color: var(--accent); }
         .hidden { display: none !important; }
 
         .app-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
+            margin-bottom: 16px;
         }
-
         .app-header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(145deg, #ff8c00, #ffaa33);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--accent);
+            cursor: pointer;
         }
-
-        .dark-toggle {
-            background: var(--surface-solid);
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .icon-button {
+            background: var(--card);
             border: 1px solid var(--border);
-            padding: 10px 16px;
-            border-radius: 40px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            font-size: 24px;
             cursor: pointer;
-            backdrop-filter: blur(8px);
-            font-weight: 500;
             transition: 0.2s;
-            font-size: 15px;
+            color: var(--text-soft);
         }
-
-        .dark-toggle:hover {
-            background: var(--accent-light);
+        .icon-button:hover {
+            background: var(--accent);
+            color: white;
             border-color: var(--accent);
         }
-
-        .global-nick-info {
-            background: var(--surface-solid);
-            border: 1px solid var(--border);
-            padding: 12px 20px;
-            border-radius: 60px;
-            display: inline-flex;
+        .profile-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card);
+            display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(8px);
-            font-size: 15px;
-            font-weight: 500;
-            box-shadow: var(--shadow);
-            width: 100%;
             justify-content: center;
-            word-break: break-word;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent);
+            cursor: pointer;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: 0.2s;
+        }
+        .profile-icon:hover {
+            transform: scale(1.05);
+            border-color: var(--accent);
+        }
+        .profile-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .global-nick-info {
+            background: var(--surface);
+            padding: 12px 20px;
+            border-radius: 40px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            color: var(--text-soft);
+            border: 1px solid var(--border);
+        }
+
+        .notes-section {
+            background: var(--surface);
+            border-radius: 28px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .notes-section h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+        .notes-list {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .note-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 12px 16px;
+            min-width: 150px;
+            border-left: 3px solid var(--accent);
+        }
+        .note-author {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .note-text {
+            font-size: 14px;
+            color: var(--text);
+            font-style: italic;
+        }
+        .note-time {
+            font-size: 10px;
+            color: var(--text-soft);
+            margin-top: 4px;
+        }
+
+        .add-note-card {
+            background: var(--surface);
+            border-radius: 30px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+        .add-note-card.visible { display: block; }
+        .add-note-card textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 14px;
+            resize: none;
+            margin-bottom: 10px;
+        }
+        .add-note-card button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         .upload-card {
-            background: var(--surface-solid);
-            backdrop-filter: blur(12px);
-            border-radius: 28px;
+            background: var(--card);
+            border-radius: 32px;
             padding: 24px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border);
+            margin-bottom: 24px;
             box-shadow: var(--shadow);
+            display: none;
         }
-
+        .upload-card.visible { display: block; }
         .upload-card h3 {
-            font-size: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text);
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--accent);
         }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
+        .form-group { margin-bottom: 16px; }
         .form-group label {
             display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 14px;
             color: var(--text-soft);
-            font-size: 14px;
+            margin-bottom: 8px;
         }
-
-        .form-group input[type="file"],
-        .form-group input[type="text"] {
+        .form-group input, .form-group textarea {
             width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.1);
-            border: 2px dashed var(--border);
-            border-radius: 20px;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: var(--surface);
             color: var(--text);
-            cursor: pointer;
             font-size: 14px;
+            transition: 0.2s;
         }
-
-        .form-group input[type="text"] {
-            border: 2px solid var(--border);
-            cursor: text;
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+            outline: none;
         }
-
         .btn {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 14px 24px;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 16px;
+            padding: 14px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 6px 14px rgba(255, 140, 0, 0.3);
             width: 100%;
+            transition: 0.2s;
         }
-
         .btn:hover {
-            background: var(--accent-dark);
+            background: var(--accent-hover);
             transform: translateY(-2px);
         }
 
         .sort-bar {
             display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-
         .sort-btn {
-            background: var(--surface-solid);
+            background: var(--card);
             border: 1px solid var(--border);
-            padding: 10px 20px;
+            padding: 10px 16px;
             border-radius: 40px;
-            font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: 0.2s;
             color: var(--text-soft);
-            backdrop-filter: blur(8px);
-            flex: 1 1 auto;
+            flex: 1;
+            transition: 0.2s;
         }
-
         .sort-btn.active {
             background: var(--accent);
             color: white;
@@ -284,181 +324,95 @@
         }
 
         .post-card {
-            background: var(--surface-solid);
-            backdrop-filter: blur(16px);
-            border-radius: 28px;
+            background: var(--card);
+            border-radius: 32px;
             padding: 20px;
-            margin-bottom: 28px;
-            border: 1px solid var(--border);
+            margin-bottom: 24px;
             box-shadow: var(--shadow);
         }
-
         .post-author {
-            font-weight: 700;
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .post-author span {
-            color: var(--accent);
-            background: var(--accent-light);
-            padding: 4px 14px;
-            border-radius: 40px;
             font-weight: 600;
-            margin-left: 4px;
-        }
-
-        .post-description {
-            margin: 8px 0 12px;
             font-size: 15px;
-            color: var(--text-soft);
-            background: var(--accent-light);
-            padding: 10px 16px;
-            border-radius: 20px;
-            border-left: 4px solid var(--accent);
+            margin-bottom: 8px;
+            color: var(--accent);
+            cursor: pointer;
+            display: inline-block;
         }
-
+        .post-description {
+            font-size: 14px;
+            color: var(--text-soft);
+            margin: 8px 0;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: 20px;
+            border-left: 3px solid var(--accent);
+        }
         .post-image {
             width: 100%;
-            max-height: 500px;
-            object-fit: contain;
-            background: var(--surface-solid);
-            border-radius: 20px;
-            margin: 16px 0;
-            border: 1px solid var(--border);
+            border-radius: 24px;
             cursor: pointer;
+            margin: 12px 0;
             transition: transform 0.2s;
         }
-
-        .post-image:hover {
-            transform: scale(1.01);
-        }
-
+        .post-image:hover { transform: scale(1.01); }
         .post-actions {
             display: flex;
-            align-items: center;
-            gap: 20px;
+            gap: 16px;
             margin: 12px 0 8px;
-            flex-wrap: wrap;
         }
-
         .action-btn {
             background: none;
             border: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 18px;
-            font-weight: 600;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
             color: var(--text-soft);
-            padding: 8px 16px;
+            padding: 8px 20px;
             border-radius: 40px;
-            transition: all 0.2s;
-            background: var(--accent-light);
-            border: 1px solid transparent;
+            background: var(--surface);
+            transition: 0.2s;
         }
-
         .action-btn:hover {
             background: var(--accent);
             color: white;
-            border-color: var(--accent);
         }
-
-        .action-btn .icon {
-            font-size: 26px;
-        }
-
-        .like-btn .icon {
-            color: var(--like);
-        }
-
-        .action-btn:hover .icon {
-            color: white;
-        }
-
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.35); }
-            100% { transform: scale(1); }
-        }
-
-        .like-pop {
-            animation: pop 0.25s ease;
-        }
-
-        .toast-message {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--toast-bg);
-            color: white;
-            padding: 12px 28px;
-            border-radius: 60px;
-            font-weight: 500;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 999;
-            animation: slideUp 0.25s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            font-size: 15px;
-            max-width: 90%;
-            text-align: center;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .action-btn .icon { font-size: 18px; }
+        .timestamp {
+            font-size: 11px;
+            color: var(--text-soft);
+            margin-top: 12px;
         }
 
         .comment-section {
-            margin-top: 20px;
+            margin-top: 16px;
             border-top: 1px solid var(--border);
-            padding-top: 18px;
+            padding-top: 16px;
             display: none;
         }
-
-        .comment-section.visible {
-            display: block;
-        }
-
+        .comment-section.visible { display: block; }
         .comment {
-            padding: 10px 0;
-            font-size: 15px;
-            border-bottom: 1px dashed var(--border);
-            color: var(--text);
-            word-break: break-word;
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            flex-wrap: wrap;
+            padding: 10px 0;
+            font-size: 13px;
+            border-bottom: 1px dashed var(--border);
         }
-
         .comment strong {
-            color: var(--accent-dark);
-            margin-right: 8px;
+            color: var(--accent);
+            cursor: pointer;
         }
-
-        .comment-content {
-            flex: 1;
-        }
-
         .comment-date {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-soft);
-            margin-left: 8px;
         }
-
         .comment-like-btn {
             background: none;
             border: none;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
             color: var(--text-soft);
             display: flex;
@@ -468,199 +422,358 @@
             border-radius: 20px;
             transition: 0.2s;
         }
-
-        .comment-like-btn:hover {
-            background: var(--accent-light);
-        }
-
-        .comment-like-btn.liked {
-            color: var(--like);
-            font-weight: bold;
-        }
-
+        .comment-like-btn:hover { background: var(--surface); }
         .comment-input {
             display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
         }
-
         .comment-input input {
-            flex: 1 1 200px;
-            padding: 12px 18px;
-            border: 2px solid var(--border);
-            border-radius: 60px;
-            outline: none;
-            font-size: 15px;
-            background: var(--surface-solid);
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            background: var(--surface);
             color: var(--text);
-            -webkit-appearance: none;
         }
-
-        .comment-input input:focus {
-            border-color: var(--accent);
-            box-shadow: var(--glow);
-        }
-
         .comment-input button {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 60px;
-            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
-            font-size: 15px;
         }
 
-        .comment-input button:hover {
-            background: var(--accent-dark);
-        }
-
-        .timestamp {
-            color: var(--text-soft);
-            font-size: 12px;
-            margin-top: 14px;
-            opacity: 0.8;
-        }
-
-        /* Modal powiększenia zdjęcia */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
             align-items: center;
             justify-content: center;
-            flex-direction: column;
+            z-index: 2100;
         }
-
-        .modal.active {
-            display: flex;
-        }
-
+        .modal.active { display: flex; }
         .modal-content {
             max-width: 90%;
             max-height: 80%;
-            object-fit: contain;
-            border-radius: 16px;
+            border-radius: 24px;
             border: 2px solid var(--accent);
         }
-
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 30px;
+            top: 20px; right: 30px;
             color: white;
             font-size: 40px;
-            font-weight: bold;
             cursor: pointer;
-            z-index: 1001;
+            transition: color 0.2s;
         }
-
-        .modal-close:hover {
-            color: var(--accent);
-        }
-
+        .modal-close:hover { color: var(--accent); }
         .modal-download {
             margin-top: 20px;
             background: var(--accent);
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 16px;
+            border-radius: 40px;
+            font-size: 14px;
             cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            display: inline-block;
         }
 
-        .modal-download:hover {
-            background: var(--accent-dark);
+        .post-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .post-modal.active { display: flex; }
+        .post-modal .post-card {
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            margin: 0 auto;
+        }
+
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            align-items: center;
+            justify-content: center;
+            z-index: 1900;
+        }
+        .profile-modal.active { display: flex; }
+        .profile-card {
+            background: var(--card);
+            border-radius: 36px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        .profile-header {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            cursor: pointer;
+        }
+        .profile-avatar.placeholder {
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--accent);
+        }
+        .profile-info { flex: 1; }
+        .profile-nick {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+        }
+        .stat { text-align: center; }
+        .stat-number {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+        .profile-bio {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: 24px;
+            margin: 16px 0;
+        }
+        .edit-profile-btn, .follow-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .follow-btn.following {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .profile-posts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 16px;
+        }
+        .profile-post-thumb {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 16px;
+            cursor: pointer;
+        }
+        .close-profile {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-soft);
+        }
+        .close-profile:hover { color: var(--accent); }
+
+        .edit-profile-form { display: none; margin-top: 20px; }
+        .edit-profile-form.active { display: block; }
+
+        .crop-container { margin: 15px 0; text-align: center; }
+        .crop-preview { max-width: 100%; max-height: 250px; border-radius: 20px; }
+        .crop-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            align-items: center;
+            justify-content: center;
+            z-index: 1950;
+        }
+        .settings-modal.active { display: flex; }
+        .settings-card {
+            background: var(--card);
+            border-radius: 36px;
+            padding: 30px 24px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid var(--border);
+        }
+        .settings-card h2 { color: var(--accent); margin-bottom: 20px; }
+        .settings-card input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .toast-message {
+            background: #2d2d2d;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+            font-size: 14px;
+            animation: fadeIn 0.2s ease;
         }
 
         @media (max-width: 450px) {
-            body { padding: 12px 8px; }
-            .auth-screen { padding: 30px 18px; }
-            .post-actions { gap: 12px; }
-            .action-btn { padding: 6px 12px; font-size: 16px; }
-            .action-btn .icon { font-size: 24px; }
-            .comment-input button { width: 100%; }
-            .modal-content { max-width: 95%; }
+            .post-actions { gap: 8px; }
+            .action-btn { padding: 8px 12px; }
+            .profile-header { flex-direction: column; align-items: center; }
+            .profile-stats { width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="loginScreen" class="auth-screen">
-            <h2>🔑 Logowanie</h2>
-            <input type="text" id="loginNick" placeholder="Nick" autocomplete="off">
-            <input type="password" id="loginPassword" placeholder="Hasło" autocomplete="off">
-            <button onclick="login()">Zaloguj się</button>
-            <div class="auth-switch" onclick="showRegister()">Nie masz konta? Zarejestruj się</div>
-            <p id="loginError" style="color: #ff8c00; margin-top: 20px;"></p>
+            <h2>🔑 logowanie</h2>
+            <input type="text" id="loginNick" placeholder="nick">
+            <input type="password" id="loginPassword" placeholder="hasło">
+            <button onclick="login()">zaloguj się</button>
+            <div class="auth-switch" onclick="showRegister()">nie masz konta? zarejestruj się</div>
+            <p id="loginError" style="color: #ff6b00; margin-top: 10px;"></p>
         </div>
 
         <div id="registerScreen" class="auth-screen hidden">
-            <h2>📝 Rejestracja</h2>
-            <input type="text" id="regNick" placeholder="Nick" autocomplete="off">
-            <input type="password" id="regPassword" placeholder="Hasło">
-            <input type="password" id="regConfirmPassword" placeholder="Powtórz hasło">
-            <input type="password" id="regSitePassword" placeholder="Hasło do strony">
-            <button onclick="register()">Zarejestruj się</button>
-            <div class="auth-switch" onclick="showLogin()">Masz już konto? Zaloguj się</div>
-            <p id="registerError" style="color: #ff8c00; margin-top: 20px;"></p>
+            <h2>📝 rejestracja</h2>
+            <input type="text" id="regNick" placeholder="nick">
+            <input type="password" id="regPassword" placeholder="hasło">
+            <input type="password" id="regConfirmPassword" placeholder="powtórz hasło">
+            <input type="password" id="regSitePassword" placeholder="hasło do strony">
+            <button onclick="register()">zarejestruj się</button>
+            <div class="auth-switch" onclick="showLogin()">masz już konto? zaloguj się</div>
+            <p id="registerError" style="color: #ff6b00; margin-top: 10px;"></p>
         </div>
 
         <div id="mainApp" class="hidden">
             <div class="app-header">
-                <h1>masuj photo</h1>
-                <div class="dark-toggle" onclick="toggleDarkMode()">
-                    <span id="darkModeIcon">🌙</span>
-                    <span id="darkModeText">Ciemny</span>
+                <h1 onclick="if(currentUser) openProfileModal(currentUser.nick)">masuj</h1>
+                <div class="header-actions">
+                    <div class="icon-button" onclick="toggleNoteForm()">📝</div>
+                    <div class="icon-button" onclick="toggleUploadForm()">+</div>
+                    <div class="icon-button" onclick="openSettings()">⚙️</div>
+                    <div class="profile-icon" onclick="if(currentUser) openProfileModal(currentUser.nick)">
+                        <span id="profileInitial"></span>
+                        <img id="profileAvatarIcon" src="" style="display: none;">
+                    </div>
                 </div>
             </div>
 
             <div id="globalNickDisplay" class="global-nick-info"></div>
 
-            <div class="upload-card">
-                <h3>➕ Dodaj zdjęcie</h3>
+            <div id="notesSection" class="notes-section" style="display: none;">
+                <h3>📝 notatki od obserwowanych</h3>
+                <div id="notesList" class="notes-list"></div>
+            </div>
+
+            <div id="addNoteCard" class="add-note-card">
+                <textarea id="noteText" placeholder="co myślisz? (max 60 znaków)" maxlength="60" rows="2"></textarea>
+                <button onclick="addNote()">opublikuj notatkę</button>
+            </div>
+
+            <div id="uploadCard" class="upload-card">
+                <h3>➕ nowe zdjęcie</h3>
                 <div class="form-group">
-                    <label>📝 Opis zdjęcia (opcjonalnie)</label>
-                    <input type="text" id="photoDescription" placeholder="Co przedstawia zdjęcie?">
+                    <label>opis</label>
+                    <input type="text" id="photoDescription" placeholder="co przedstawia?">
                 </div>
                 <div class="form-group">
-                    <label>📱 Wybierz zdjęcie (max 5 MB)</label>
+                    <label>zdjęcie (max 5 MB)</label>
                     <input type="file" id="fileInput" accept="image/*">
                 </div>
-                <button onclick="uploadPhoto()" class="btn" id="uploadBtn">Opublikuj</button>
-                <div id="uploadStatus" style="margin-top:16px; color:var(--text-soft);"></div>
+                <button onclick="uploadPhoto()" class="btn">opublikuj</button>
+                <div id="uploadStatus" style="margin-top:10px; color:var(--text-soft);"></div>
             </div>
 
             <div class="sort-bar">
-                <button id="sortDateBtn" class="sort-btn active" onclick="setSort('date')">📅 Najnowsze</button>
-                <button id="sortLikesBtn" class="sort-btn" onclick="setSort('likes')">❤️ Najpopularniejsze</button>
+                <button id="sortDateBtn" class="sort-btn active" onclick="setSort('date')">📅 najnowsze</button>
+                <button id="sortLikesBtn" class="sort-btn" onclick="setSort('likes')">❤️ popularne</button>
             </div>
 
             <div id="postsContainer"></div>
         </div>
     </div>
 
-    <!-- Modal powiększenia zdjęcia -->
     <div id="imageModal" class="modal">
         <span class="modal-close" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="modalImage">
-        <a id="downloadBtn" class="modal-download" download="zdjecie.jpg">📥 Pobierz</a>
+        <button class="modal-download" onclick="downloadImage()">pobierz</button>
     </div>
 
-    <div id="toastContainer" style="position:fixed; bottom:30px; left:0; right:0; pointer-events:none; display:flex; justify-content:center;"></div>
+    <div id="postModal" class="post-modal">
+        <span class="modal-close" onclick="closePostModal()">&times;</span>
+        <div id="singlePostContainer" class="post-card"></div>
+    </div>
+
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-card">
+            <span class="close-profile" onclick="closeProfileModal()">&times;</span>
+            <div id="profileContent">ładowanie profilu...</div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-card">
+            <span class="close-profile" onclick="closeSettings()">&times;</span>
+            <h2>⚙️ ustawienia</h2>
+            <input type="text" id="newNick" placeholder="nowy nick">
+            <input type="password" id="newPassword" placeholder="nowe hasło">
+            <input type="password" id="confirmNewPassword" placeholder="potwierdź hasło">
+            <button class="btn" onclick="updateSettings()">zapisz zmiany</button>
+            <p id="settingsError" style="color: #ff6b00; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="toastContainer" style="position:fixed; bottom:30px; left:0; right:0; display:flex; justify-content:center; pointer-events:none;"></div>
 
     <script>
         const firebaseConfig = {
@@ -672,25 +785,31 @@
             appId: "1:229844568705:web:04a0ca40cac41b394ddb80"
         };
 
-        let db;
-        let unsubscribePosts = null;
-        let currentSort = 'date';
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         let currentUser = null;
+        let currentSort = 'date';
+        let unsubscribePosts = null;
+        let unsubscribeNotes = null;
+        let unsubscribeSinglePost = null;
+        let cropper = null;
 
-        function initFirebase() {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-        }
-
-        async function hashPassword(password) {
+        const escapeHTML = u => u ? u.replace(/[&<>"]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[m]) : '';
+        const showToast = m => {
+            const t = document.createElement('div');
+            t.className = 'toast-message';
+            t.innerText = m;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 2000);
+        };
+        const hashPassword = async p => {
             const encoder = new TextEncoder();
-            const data = encoder.encode(password);
+            const data = encoder.encode(p);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
+        };
 
         async function register() {
             const nick = document.getElementById('regNick').value.trim();
@@ -698,198 +817,151 @@
             const confirm = document.getElementById('regConfirmPassword').value;
             const sitePass = document.getElementById('regSitePassword').value;
 
-            if (!nick || !pass || !confirm || !sitePass) {
-                showError('registerError', 'Wypełnij wszystkie pola');
-                return;
-            }
-            if (pass !== confirm) {
-                showError('registerError', 'Hasła nie są zgodne');
-                return;
-            }
-            if (sitePass !== 'FranciszekMasuje8') {
-                showError('registerError', 'Nieprawidłowe hasło do strony');
-                return;
-            }
+            if (!nick || !pass || !confirm || !sitePass) return showError('registerError', 'wypełnij wszystkie pola');
+            if (pass !== confirm) return showError('registerError', 'hasła nie są zgodne');
+            if (sitePass !== 'FranciszekMasuje8') return showError('registerError', 'nieprawidłowe hasło do strony');
 
             try {
-                initFirebase();
-                const userDoc = await db.collection('users').doc(nick).get();
-                if (userDoc.exists) {
-                    showError('registerError', 'Użytkownik o tym nicku już istnieje');
-                    return;
-                }
+                if ((await db.collection('users').doc(nick).get()).exists) return showError('registerError', 'użytkownik już istnieje');
                 const hashed = await hashPassword(pass);
-                await db.collection('users').doc(nick).set({
-                    nick: nick,
-                    passwordHash: hashed,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                showToast('✅ Konto utworzone! Możesz się zalogować');
+                await db.collection('users').doc(nick).set({ nick, passwordHash: hashed, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('profiles').doc(nick).set({ nick, bio: '', avatarUrl: '', followers: [], following: [], followersCount: 0, followingCount: 0 });
+                showToast('konto utworzone!');
                 showLogin();
-            } catch (e) {
-                console.error(e);
-                showError('registerError', 'Błąd: ' + e.message);
-            }
+            } catch (e) { showError('registerError', 'błąd: ' + e.message); }
         }
 
         async function login() {
             const nick = document.getElementById('loginNick').value.trim();
             const pass = document.getElementById('loginPassword').value;
-
-            if (!nick || !pass) {
-                showError('loginError', 'Wprowadź nick i hasło');
-                return;
-            }
+            if (!nick || !pass) return showError('loginError', 'wprowadź nick i hasło');
 
             try {
-                initFirebase();
                 const userDoc = await db.collection('users').doc(nick).get();
-                if (!userDoc.exists) {
-                    showError('loginError', 'Nieprawidłowy nick lub hasło');
-                    return;
-                }
-                const userData = userDoc.data();
+                if (!userDoc.exists) return showError('loginError', 'nieprawidłowy nick lub hasło');
                 const hashedInput = await hashPassword(pass);
-                if (hashedInput !== userData.passwordHash) {
-                    showError('loginError', 'Nieprawidłowy nick lub hasło');
-                    return;
-                }
-                currentUser = { nick: nick };
-                sessionStorage.setItem('fakegram_user_nick', nick);
+                if (hashedInput !== userDoc.data().passwordHash) return showError('loginError', 'nieprawidłowy nick lub hasło');
 
+                currentUser = { nick };
+                sessionStorage.setItem('fakegram_user_nick', nick);
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('registerScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
-                document.getElementById('globalNickDisplay').innerHTML = `👋 Jesteś jako <strong>${escapeHTML(nick)}</strong>`;
-
+                document.getElementById('globalNickDisplay').innerHTML = `👋 jesteś jako <strong>${escapeHTML(nick)}</strong>`;
+                loadProfileIcon(nick);
                 subscribePosts(currentSort);
-            } catch (e) {
-                console.error(e);
-                showError('loginError', 'Błąd: ' + e.message);
-            }
+                subscribeNotes();
+            } catch (e) { showError('loginError', 'błąd: ' + e.message); }
         }
 
         (async function autoLogin() {
-            const savedNick = sessionStorage.getItem('fakegram_user_nick');
-            if (!savedNick) return;
+            const saved = sessionStorage.getItem('fakegram_user_nick');
+            if (!saved) return;
             try {
-                initFirebase();
-                const userDoc = await db.collection('users').doc(savedNick).get();
-                if (userDoc.exists) {
-                    currentUser = { nick: savedNick };
+                if ((await db.collection('users').doc(saved).get()).exists) {
+                    currentUser = { nick: saved };
                     document.getElementById('loginScreen').classList.add('hidden');
                     document.getElementById('registerScreen').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
-                    document.getElementById('globalNickDisplay').innerHTML = `👋 Jesteś jako <strong>${escapeHTML(savedNick)}</strong>`;
+                    document.getElementById('globalNickDisplay').innerHTML = `👋 jesteś jako <strong>${escapeHTML(saved)}</strong>`;
+                    loadProfileIcon(saved);
                     subscribePosts(currentSort);
-                } else {
-                    sessionStorage.removeItem('fakegram_user_nick');
-                }
-            } catch (e) {
-                console.warn('Auto-login nieudany', e);
-            }
+                    subscribeNotes();
+                } else sessionStorage.removeItem('fakegram_user_nick');
+            } catch (e) {}
         })();
+
+        async function loadProfileIcon(nick) {
+            const p = (await db.collection('profiles').doc(nick).get()).data() || {};
+            const i = document.getElementById('profileInitial');
+            const a = document.getElementById('profileAvatarIcon');
+            if (p.avatarUrl) {
+                a.src = p.avatarUrl;
+                a.style.display = 'block';
+                i.style.display = 'none';
+            } else {
+                i.style.display = 'block';
+                i.innerText = nick.charAt(0).toUpperCase();
+                a.style.display = 'none';
+            }
+        }
 
         function showLogin() {
             document.getElementById('registerScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             clearErrors();
         }
-
         function showRegister() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('registerScreen').classList.remove('hidden');
             clearErrors();
         }
-
         function clearErrors() {
             document.getElementById('loginError').innerText = '';
             document.getElementById('registerError').innerText = '';
         }
+        function showError(id, msg) { document.getElementById(id).innerText = msg; }
 
-        function showError(elementId, msg) {
-            document.getElementById(elementId).innerText = msg;
+        function toggleUploadForm() {
+            document.getElementById('uploadCard').classList.toggle('visible');
+        }
+        function toggleNoteForm() {
+            document.getElementById('addNoteCard').classList.toggle('visible');
         }
 
-        function subscribePosts(sortBy) {
-            if (!db) return;
+        function subscribePosts(sort) {
             if (unsubscribePosts) unsubscribePosts();
-
             let query = db.collection('posts');
-            if (sortBy === 'date') query = query.orderBy('timestamp', 'desc');
-            else if (sortBy === 'likes') query = query.orderBy('likes', 'desc');
-
-            unsubscribePosts = query.onSnapshot((snapshot) => {
+            if (sort === 'date') query = query.orderBy('timestamp', 'desc');
+            else if (sort === 'likes') query = query.orderBy('likes', 'desc');
+            unsubscribePosts = query.onSnapshot(snapshot => {
                 const container = document.getElementById('postsContainer');
                 container.innerHTML = '';
                 snapshot.forEach(doc => {
-                    const post = doc.data();
-                    post.id = doc.id;
+                    const post = { id: doc.id, ...doc.data() };
                     container.appendChild(renderPost(post));
                 });
-            }, (error) => {
-                console.error('Błąd ładowania:', error);
-                if (error.message.includes('index')) {
-                    showToast('❗ Wymagany indeks – kliknij link w konsoli (F12)', 5000);
-                }
             });
         }
 
-        function setSort(sortBy) {
-            currentSort = sortBy;
-            document.getElementById('sortDateBtn').classList.toggle('active', sortBy === 'date');
-            document.getElementById('sortLikesBtn').classList.toggle('active', sortBy === 'likes');
-            subscribePosts(sortBy);
+        function setSort(sort) {
+            currentSort = sort;
+            document.getElementById('sortDateBtn').classList.toggle('active', sort === 'date');
+            document.getElementById('sortLikesBtn').classList.toggle('active', sort === 'likes');
+            subscribePosts(sort);
         }
 
         async function uploadPhoto() {
-            if (!currentUser) { showToast('❌ Nie jesteś zalogowany'); return; }
+            if (!currentUser) return showToast('zaloguj się');
             const fileInput = document.getElementById('fileInput');
-            const descriptionInput = document.getElementById('photoDescription');
-            const status = document.getElementById('uploadStatus');
-            if (!fileInput.files[0]) {
-                status.innerText = '❌ Wybierz plik!';
-                return;
-            }
             const file = fileInput.files[0];
-            if (file.size > 5 * 1024 * 1024) {
-                status.innerText = '❌ Maksymalnie 5 MB';
-                return;
-            }
-
-            status.innerText = '⏳ Wysyłanie do serwera...';
-            const IMGBB_API_KEY = '0cadfc7d236e0c46dc36343b22964fa9';
-            const formData = new FormData();
-            formData.append('key', IMGBB_API_KEY);
-            formData.append('image', file);
-
+            if (!file) return (document.getElementById('uploadStatus').innerText = 'wybierz plik');
+            if (file.size > 5 * 1024 * 1024) return (document.getElementById('uploadStatus').innerText = 'max 5 MB');
+            document.getElementById('uploadStatus').innerText = 'wysyłanie...';
+            const fd = new FormData();
+            fd.append('key', '0cadfc7d236e0c46dc36343b22964fa9');
+            fd.append('image', file);
             try {
-                const res = await fetch('https://api.imgbb.com/1/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+                const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error?.message || 'Błąd ImgBB');
-                const imageUrl = data.data.url;
-                const description = descriptionInput.value.trim() || '';
-
+                if (!data.success) throw new Error(data.error?.message || 'błąd ImgBB');
+                const description = document.getElementById('photoDescription').value.trim() || '';
                 await db.collection('posts').add({
-                    imageUrl: imageUrl,
-                    description: description,
+                    imageUrl: data.data.url,
+                    description,
                     author: currentUser.nick,
                     likes: 0,
                     likedBy: [],
                     comments: [],
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
-                status.innerText = '✅ Opublikowano!';
+                document.getElementById('uploadStatus').innerText = 'opublikowano';
                 fileInput.value = '';
-                descriptionInput.value = '';
+                document.getElementById('photoDescription').value = '';
+                document.getElementById('uploadCard').classList.remove('visible');
             } catch (e) {
-                status.innerText = '❌ Błąd: ' + e.message;
+                document.getElementById('uploadStatus').innerText = 'błąd: ' + e.message;
                 console.error(e);
-                showToast('❌ ' + e.message);
             }
         }
 
@@ -897,252 +969,416 @@
             const card = document.createElement('div');
             card.className = 'post-card';
             card.dataset.id = post.id;
-
-            const authorDiv = document.createElement('div');
-            authorDiv.className = 'post-author';
-            authorDiv.innerHTML = `📸 <span>${escapeHTML(post.author || 'anonim')}</span>`;
-            card.appendChild(authorDiv);
-
-            if (post.description) {
-                const descDiv = document.createElement('div');
-                descDiv.className = 'post-description';
-                descDiv.innerText = post.description;
-                card.appendChild(descDiv);
-            }
-
-            const img = document.createElement('img');
-            img.className = 'post-image';
-            img.src = post.imageUrl;
-            img.alt = 'zdjęcie';
-            img.onclick = () => openModal(post.imageUrl);
-
-            const actions = document.createElement('div');
-            actions.className = 'post-actions';
-
-            const userLiked = currentUser && post.likedBy && post.likedBy.includes(currentUser.nick);
-            const likeBtn = document.createElement('button');
-            likeBtn.className = 'action-btn like-btn';
-            likeBtn.onclick = (e) => { e.stopPropagation(); toggleLike(post.id, likeBtn, post); };
-            likeBtn.innerHTML = `<span class="icon">${userLiked ? '❤️' : '🤍'}</span><span class="like-count">${post.likes || 0}</span>`;
-
-            const commentBtn = document.createElement('button');
-            commentBtn.className = 'action-btn comment-icon';
-            commentBtn.onclick = (e) => { e.stopPropagation(); toggleComments(post.id); };
-            const commentCount = post.comments ? post.comments.length : 0;
-            commentBtn.innerHTML = `<span class="icon">💬</span><span class="comment-count">${commentCount}</span>`;
-
-            actions.appendChild(likeBtn);
-            actions.appendChild(commentBtn);
-
-            const commentSection = document.createElement('div');
-            commentSection.className = 'comment-section';
-            commentSection.id = `comments-${post.id}`;
-
-            const commentsList = document.createElement('div');
-            commentsList.id = `commentsList-${post.id}`;
+            card.innerHTML = `
+                <div class="post-author" onclick="openProfileModal('${escapeHTML(post.author)}')">📸 ${escapeHTML(post.author)}</div>
+                ${post.description ? `<div class="post-description">${escapeHTML(post.description)}</div>` : ''}
+                <img src="${post.imageUrl}" class="post-image" onclick="openImageModal('${post.imageUrl}')">
+                <div class="post-actions">
+                    <button class="action-btn" onclick="toggleLike('${post.id}', this)"><span class="icon">${currentUser && post.likedBy?.includes(currentUser.nick) ? '❤️' : '🤍'}</span> <span>${post.likes || 0}</span></button>
+                    <button class="action-btn" onclick="toggleComments('${post.id}')"><span class="icon">💬</span> <span>${post.comments?.length || 0}</span></button>
+                </div>
+                <div class="comment-section" id="comments-${post.id}">
+                    <div id="commentsList-${post.id}"></div>
+                    <div class="comment-input">
+                        <input type="text" id="commentText-${post.id}" placeholder="komentarz...">
+                        <button onclick="addComment('${post.id}')">wyślij</button>
+                    </div>
+                </div>
+                ${post.timestamp ? `<div class="timestamp">${post.timestamp.toDate().toLocaleString('pl-PL')}</div>` : ''}
+            `;
+            const commentsList = card.querySelector(`#commentsList-${post.id}`);
             if (post.comments && post.comments.length) {
                 [...post.comments]
-                    .sort((a, b) => (a.timestamp?.seconds || a.timestamp || 0) - (b.timestamp?.seconds || b.timestamp || 0))
+                    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
                     .forEach(c => {
-                        const el = document.createElement('div');
-                        el.className = 'comment';
-
-                        const commentContent = document.createElement('div');
-                        commentContent.className = 'comment-content';
                         const date = c.timestamp ? new Date(c.timestamp.seconds ? c.timestamp.seconds * 1000 : c.timestamp) : null;
-                        const dateStr = date ? `${date.toLocaleDateString('pl-PL')} ${date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : '';
-                        commentContent.innerHTML = `<strong>👤 ${escapeHTML(c.author || 'anonim')}</strong> ${escapeHTML(c.text)}<span class="comment-date">${dateStr}</span>`;
-
-                        const likeCommentBtn = document.createElement('button');
-                        likeCommentBtn.className = 'comment-like-btn';
-                        const commentLiked = currentUser && c.likedBy && c.likedBy.includes(currentUser.nick);
-                        likeCommentBtn.innerHTML = `${commentLiked ? '❤️' : '🤍'} <span>${c.likes || 0}</span>`;
-                        if (commentLiked) likeCommentBtn.classList.add('liked');
-                        likeCommentBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            toggleCommentLike(post.id, c, likeCommentBtn);
-                        };
-
-                        el.appendChild(commentContent);
-                        el.appendChild(likeCommentBtn);
-                        commentsList.appendChild(el);
+                        const ds = date ? `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '';
+                        const liked = currentUser && c.likedBy?.includes(currentUser.nick);
+                        commentsList.innerHTML += `
+                            <div class="comment">
+                                <div><strong onclick="openProfileModal('${escapeHTML(c.author)}')">👤 ${escapeHTML(c.author)}</strong> ${escapeHTML(c.text)} <span class="comment-date">${ds}</span></div>
+                                <button class="comment-like-btn" onclick="toggleCommentLike('${post.id}', '${escapeHTML(c.author)}', '${escapeHTML(c.text)}', ${c.timestamp?.seconds || 0}, this)">${liked ? '❤️' : '🤍'} ${c.likes || 0}</button>
+                            </div>
+                        `;
                     });
             }
-
-            const commentForm = document.createElement('div');
-            commentForm.className = 'comment-input';
-            commentForm.innerHTML = `
-                <input type="text" id="commentText-${post.id}" placeholder="Napisz komentarz..." autocomplete="off">
-                <button data-postid="${post.id}" onclick="addComment(this)">Wyślij</button>
-            `;
-
-            commentSection.appendChild(commentsList);
-            commentSection.appendChild(commentForm);
-
-            if (post.timestamp) {
-                const timeEl = document.createElement('div');
-                timeEl.className = 'timestamp';
-                const date = post.timestamp.toDate();
-                timeEl.innerText = `📅 ${date.toLocaleString('pl-PL')}`;
-                card.appendChild(timeEl);
-            }
-
-            card.appendChild(img);
-            card.appendChild(actions);
-            card.appendChild(commentSection);
             return card;
         }
 
-        async function toggleLike(postId, btnElement, postData) {
-            if (!currentUser) { showToast('❌ Zaloguj się, aby polubić'); return; }
-            const icon = btnElement.querySelector('.icon');
-            icon.classList.add('like-pop');
-            setTimeout(() => icon.classList.remove('like-pop'), 250);
-            const postRef = db.collection('posts').doc(postId);
+        async function toggleLike(postId, btn) {
+            if (!currentUser) return showToast('zaloguj się');
+            const ref = db.collection('posts').doc(postId);
             try {
-                await db.runTransaction(async (transaction) => {
-                    const doc = await transaction.get(postRef);
+                await db.runTransaction(async t => {
+                    const doc = await t.get(ref);
                     if (!doc.exists) return;
                     const data = doc.data();
                     let likedBy = data.likedBy || [];
                     let likes = data.likes || 0;
                     if (likedBy.includes(currentUser.nick)) {
-                        likedBy = likedBy.filter(nick => nick !== currentUser.nick);
-                        likes = Math.max(0, likes - 1);
-                        showToast('🤍 Usunięto polubienie');
-                    } else {
-                        likedBy.push(currentUser.nick);
-                        likes += 1;
-                        showToast('❤️ +1 polubienie!');
-                    }
-                    transaction.update(postRef, { likedBy, likes });
-                });
-            } catch (e) {
-                console.error('Błąd like/dislike:', e);
-                showToast('❌ Nie udało się');
-            }
-        }
-
-        async function toggleCommentLike(post, comment, btnElement) {
-            if (!currentUser) { showToast('❌ Zaloguj się, aby polubić'); return; }
-            const postRef = db.collection('posts').doc(post.id);
-            try {
-                await db.runTransaction(async (transaction) => {
-                    const doc = await transaction.get(postRef);
-                    if (!doc.exists) return;
-                    const data = doc.data();
-                    const comments = data.comments || [];
-                    const commentIndex = comments.findIndex(c => 
-                        c.author === comment.author && 
-                        c.text === comment.text && 
-                        c.timestamp?.seconds === comment.timestamp?.seconds
-                    );
-                    if (commentIndex === -1) return;
-                    const updatedComment = { ...comments[commentIndex] };
-                    let likedBy = updatedComment.likedBy || [];
-                    let likes = updatedComment.likes || 0;
-                    if (likedBy.includes(currentUser.nick)) {
-                        likedBy = likedBy.filter(nick => nick !== currentUser.nick);
+                        likedBy = likedBy.filter(n => n !== currentUser.nick);
                         likes = Math.max(0, likes - 1);
                     } else {
                         likedBy.push(currentUser.nick);
                         likes += 1;
                     }
-                    updatedComment.likedBy = likedBy;
-                    updatedComment.likes = likes;
-                    comments[commentIndex] = updatedComment;
-                    transaction.update(postRef, { comments });
+                    t.update(ref, { likedBy, likes });
                 });
-            } catch (e) {
-                console.error('Błąd like komentarza:', e);
-                showToast('❌ Nie udało się');
-            }
+            } catch (e) { console.error(e); showToast('❌ błąd'); }
         }
 
         function toggleComments(postId) {
-            const section = document.getElementById(`comments-${postId}`);
-            if (section) section.classList.toggle('visible');
+            document.getElementById(`comments-${postId}`).classList.toggle('visible');
         }
 
-        async function addComment(buttonElement) {
-            const postId = buttonElement.getAttribute('data-postid');
-            if (!postId) { showToast('❌ Błąd wewnętrzny'); return; }
-            if (!db) { showToast('❌ Baza danych nie gotowa'); return; }
-            if (!currentUser) { showToast('❌ Musisz być zalogowany'); return; }
+        async function addComment(postId) {
+            if (!currentUser) return showToast('zaloguj się');
             const input = document.getElementById(`commentText-${postId}`);
-            if (!input) { showToast('❌ Nie znaleziono pola'); return; }
             const text = input.value.trim();
-            if (!text) { showToast('❌ Komentarz nie może być pusty'); return; }
-            const postRef = db.collection('posts').doc(postId);
+            if (!text) return showToast('pusty komentarz');
+            const newComment = {
+                author: currentUser.nick,
+                text,
+                timestamp: new Date(),
+                likes: 0,
+                likedBy: []
+            };
             try {
-                const newComment = {
-                    author: currentUser.nick,
-                    text: text,
-                    timestamp: new Date(),
-                    likes: 0,
-                    likedBy: []
-                };
-                await postRef.update({
+                await db.collection('posts').doc(postId).update({
                     comments: firebase.firestore.FieldValue.arrayUnion(newComment)
                 });
                 input.value = '';
-                const section = document.getElementById(`comments-${postId}`);
-                if (section && !section.classList.contains('visible')) {
-                    section.classList.add('visible');
-                }
-                showToast('💬 Komentarz dodany!');
-            } catch (e) {
-                console.error('Błąd dodawania komentarza:', e);
-                showToast('❌ Błąd: ' + e.message);
-            }
+                document.getElementById(`comments-${postId}`).classList.add('visible');
+            } catch (e) { console.error(e); showToast('❌ błąd'); }
         }
 
-        function openModal(imageUrl) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            const downloadBtn = document.getElementById('downloadBtn');
-            modalImg.src = imageUrl;
-            downloadBtn.href = imageUrl;
-            modal.classList.add('active');
+        async function toggleCommentLike(postId, author, text, timestampSeconds, btn) {
+            if (!currentUser) return showToast('zaloguj się');
+            const ref = db.collection('posts').doc(postId);
+            try {
+                await db.runTransaction(async t => {
+                    const doc = await t.get(ref);
+                    if (!doc.exists) return;
+                    const data = doc.data();
+                    const comments = data.comments || [];
+                    const idx = comments.findIndex(c => c.author === author && c.text === text && (c.timestamp?.seconds || 0) === timestampSeconds);
+                    if (idx === -1) return;
+                    const updated = { ...comments[idx] };
+                    let likedBy = updated.likedBy || [];
+                    let likes = updated.likes || 0;
+                    if (likedBy.includes(currentUser.nick)) {
+                        likedBy = likedBy.filter(n => n !== currentUser.nick);
+                        likes = Math.max(0, likes - 1);
+                    } else {
+                        likedBy.push(currentUser.nick);
+                        likes += 1;
+                    }
+                    updated.likedBy = likedBy;
+                    updated.likes = likes;
+                    comments[idx] = updated;
+                    t.update(ref, { comments });
+                });
+            } catch (e) { console.error(e); showToast('❌ błąd'); }
         }
 
+        function openImageModal(url) {
+            document.getElementById('modalImage').src = url;
+            document.getElementById('imageModal').classList.add('active');
+        }
         function closeModal() {
-            const modal = document.getElementById('imageModal');
-            modal.classList.remove('active');
+            document.getElementById('imageModal').classList.remove('active');
+        }
+        async function downloadImage() {
+            const url = document.getElementById('modalImage').src;
+            if (!url) return;
+            try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = 'zdjecie.jpg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+                showToast('✅ pobieranie');
+            } catch (e) { showToast('❌ błąd pobierania'); }
         }
 
-        function showToast(message, duration = 2000) {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast-message';
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), duration);
+        function openPostModal(postId) {
+            if (!postId) return;
+            const modal = document.getElementById('postModal');
+            const container = document.getElementById('singlePostContainer');
+            modal.classList.add('active');
+            if (unsubscribeSinglePost) unsubscribeSinglePost();
+            unsubscribeSinglePost = db.collection('posts').doc(postId).onSnapshot(doc => {
+                if (!doc.exists) {
+                    container.innerHTML = '<p style="text-align:center;">Post nie istnieje</p>';
+                    return;
+                }
+                const post = { id: doc.id, ...doc.data() };
+                container.innerHTML = '';
+                container.appendChild(renderPost(post));
+            });
         }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            document.getElementById('darkModeIcon').innerText = isDark ? '☀️' : '🌙';
-            document.getElementById('darkModeText').innerText = isDark ? 'Jasny' : 'Ciemny';
-        }
-
-        function escapeHTML(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('imageModal');
-            if (event.target === modal) {
-                closeModal();
+        function closePostModal() {
+            document.getElementById('postModal').classList.remove('active');
+            if (unsubscribeSinglePost) {
+                unsubscribeSinglePost();
+                unsubscribeSinglePost = null;
             }
-        };
+        }
+
+        async function openProfileModal(nick) {
+            if (!nick) return;
+            const modal = document.getElementById('profileModal');
+            const content = document.getElementById('profileContent');
+            content.innerHTML = 'ładowanie...';
+            modal.classList.add('active');
+            try {
+                let profile = (await db.collection('profiles').doc(nick).get()).data();
+                if (!profile) {
+                    const userExists = (await db.collection('users').doc(nick).get()).exists;
+                    if (!userExists) { content.innerHTML = '<p style="text-align:center;">nie znaleziono</p>'; return; }
+                    await db.collection('profiles').doc(nick).set({ nick, bio: '', avatarUrl: '', followers: [], following: [], followersCount: 0, followingCount: 0 });
+                    profile = (await db.collection('profiles').doc(nick).get()).data();
+                }
+                const posts = [];
+                (await db.collection('posts').where('author', '==', nick).orderBy('timestamp', 'desc').get()).forEach(d => posts.push({ id: d.id, ...d.data() }));
+                const isFollowing = currentUser && profile.followers?.includes(currentUser.nick);
+                const avatar = profile.avatarUrl ? `<img src="${profile.avatarUrl}" class="profile-avatar" onclick="openImageModal('${profile.avatarUrl}')">` : `<div class="profile-avatar placeholder">${nick.charAt(0).toUpperCase()}</div>`;
+                const action = (currentUser && currentUser.nick === nick) ? '<button class="edit-profile-btn" onclick="showEditProfileForm()">edytuj profil</button>' : (currentUser ? `<button class="follow-btn ${isFollowing ? 'following' : ''}" onclick="followUser(\''+nick+'\')">${isFollowing ? 'obserwujesz' : 'obserwuj'}</button>` : '');
+
+                // Pobierz notatki użytkownika (własne) z ostatnich 24h
+                const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const userNotesSnapshot = await db.collection('notes')
+                    .where('author', '==', nick)
+                    .where('timestamp', '>', oneDayAgo)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                const userNotes = [];
+                userNotesSnapshot.forEach(d => userNotes.push(d.data()));
+
+                const notesHtml = userNotes.length ? `
+                    <div style="margin-top:16px;">
+                        <h4 style="color:var(--accent); margin-bottom:8px;">📝 notatki</h4>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            ${userNotes.map(n => `
+                                <div class="note-card" style="min-width:auto; max-width:100%;">
+                                    <div class="note-text">${escapeHTML(n.text)}</div>
+                                    <div class="note-time">${n.timestamp.toDate().toLocaleString('pl-PL')}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : '';
+
+                content.innerHTML = `
+                    <div class="profile-header">
+                        ${avatar}
+                        <div class="profile-info">
+                            <div class="profile-nick">${escapeHTML(nick)}</div>
+                            <div class="profile-stats">
+                                <div class="stat"><span class="stat-number">${posts.length}</span><br><span class="stat-label">posty</span></div>
+                                <div class="stat"><span class="stat-number">${profile.followers?.length || 0}</span><br><span class="stat-label">obserwujący</span></div>
+                                <div class="stat"><span class="stat-number">${profile.following?.length || 0}</span><br><span class="stat-label">obserwowani</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-bio">${profile.bio || 'brak opisu'}</div>
+                    <div style="text-align:center;">${action}</div>
+                    ${notesHtml}
+                    <div id="editProfileForm" class="edit-profile-form">
+                        <h4>edytuj profil</h4>
+                        <div class="form-group"><label>nowy avatar</label><input type="file" id="editAvatarInput" accept="image/*" onchange="startCrop(this)"></div>
+                        <div id="cropArea" class="crop-container"></div>
+                        <div class="form-group"><label>bio</label><textarea id="editBioInput" maxlength="200">${profile.bio || ''}</textarea></div>
+                        <button class="btn" onclick="updateProfile('${nick}')">zapisz</button>
+                        <button class="btn" style="background:#888;" onclick="hideEditProfileForm()">anuluj</button>
+                    </div>
+                    <h4 style="margin-top:15px;">posty</h4>
+                    <div class="profile-posts">${posts.map(p => `<img src="${p.imageUrl}" class="profile-post-thumb" onclick="openPostModal('${p.id}')">`).join('') || '<p style="text-align:center;">brak</p>'}</div>
+                `;
+            } catch (e) { console.error(e); content.innerHTML = '<p style="text-align:center; color:#ff6b00;">błąd</p>'; }
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+            if (cropper) { cropper.destroy(); cropper = null; }
+        }
+        function showEditProfileForm() { document.getElementById('editProfileForm').classList.add('active'); }
+        function hideEditProfileForm() {
+            document.getElementById('editProfileForm').classList.remove('active');
+            if (cropper) { cropper.destroy(); cropper = null; document.getElementById('cropArea').innerHTML = ''; }
+        }
+
+        function startCrop(input) {
+            if (!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const area = document.getElementById('cropArea');
+                area.innerHTML = '<img id="cropImage" class="crop-preview"><button class="crop-btn" onclick="cropAndUpload()">przytnij i zapisz</button>';
+                const img = document.getElementById('cropImage');
+                img.src = e.target.result;
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1 });
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+        async function cropAndUpload() {
+            if (!cropper) return;
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            canvas.toBlob(async blob => {
+                const fd = new FormData();
+                fd.append('key', '0cadfc7d236e0c46dc36343b22964fa9');
+                fd.append('image', blob);
+                try {
+                    const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.error?.message);
+                    document.getElementById('editAvatarInput').dataset.uploadedUrl = data.data.url;
+                    showToast('avatar przycięty');
+                } catch (e) { showToast('błąd: ' + e.message); }
+                cropper.destroy();
+                cropper = null;
+                document.getElementById('cropArea').innerHTML = '';
+            });
+        }
+        async function updateProfile(nick) {
+            const bio = document.getElementById('editBioInput').value.trim();
+            const avatarUrl = document.getElementById('editAvatarInput').dataset.uploadedUrl;
+            const updates = {};
+            if (bio) updates.bio = bio;
+            if (avatarUrl) updates.avatarUrl = avatarUrl;
+            if (Object.keys(updates).length) await db.collection('profiles').doc(nick).update(updates);
+            showToast('profil zaktualizowany');
+            hideEditProfileForm();
+            loadProfileIcon(nick);
+            openProfileModal(nick);
+        }
+
+        async function followUser(target) {
+            if (!currentUser || currentUser.nick === target) return;
+            const ref = db.collection('profiles').doc(target);
+            const myRef = db.collection('profiles').doc(currentUser.nick);
+            try {
+                await db.runTransaction(async t => {
+                    const targ = (await t.get(ref)).data();
+                    const me = (await t.get(myRef)).data();
+                    let tf = targ.followers || [];
+                    let mf = me.following || [];
+                    if (tf.includes(currentUser.nick)) {
+                        tf = tf.filter(n => n !== currentUser.nick);
+                        mf = mf.filter(n => n !== target);
+                    } else {
+                        tf.push(currentUser.nick);
+                        mf.push(target);
+                    }
+                    t.update(ref, { followers: tf, followersCount: tf.length });
+                    t.update(myRef, { following: mf, followingCount: mf.length });
+                });
+                openProfileModal(target);
+            } catch (e) { console.error(e); showToast('❌ błąd'); }
+        }
+
+        function subscribeNotes() {
+            if (!currentUser) return;
+            if (unsubscribeNotes) unsubscribeNotes();
+            db.collection('profiles').doc(currentUser.nick).onSnapshot(async (doc) => {
+                const following = doc.data()?.following || [];
+                if (following.length === 0) {
+                    document.getElementById('notesSection').style.display = 'none';
+                    return;
+                }
+                const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const notesQuery = db.collection('notes')
+                    .where('author', 'in', following)
+                    .where('timestamp', '>', oneDayAgo)
+                    .orderBy('timestamp', 'desc');
+                unsubscribeNotes = notesQuery.onSnapshot(snapshot => {
+                    const notesList = document.getElementById('notesList');
+                    notesList.innerHTML = '';
+                    if (snapshot.empty) {
+                        document.getElementById('notesSection').style.display = 'none';
+                        return;
+                    }
+                    document.getElementById('notesSection').style.display = 'block';
+                    snapshot.forEach(d => {
+                        const note = d.data();
+                        const time = note.timestamp.toDate();
+                        const timeStr = `${time.toLocaleDateString()} ${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                        notesList.innerHTML += `
+                            <div class="note-card">
+                                <div class="note-author">${escapeHTML(note.author)}</div>
+                                <div class="note-text">${escapeHTML(note.text)}</div>
+                                <div class="note-time">${timeStr}</div>
+                            </div>
+                        `;
+                    });
+                }, err => {
+                    if (err.code === 'failed-precondition') {
+                        showToast('❗ utwórz indeks dla notatek – kliknij link w konsoli');
+                    }
+                });
+            });
+        }
+        async function addNote() {
+            if (!currentUser) return showToast('zaloguj się');
+            const text = document.getElementById('noteText').value.trim();
+            if (!text) return showToast('wpisz coś');
+            if (text.length > 60) return showToast('max 60 znaków');
+            try {
+                await db.collection('notes').add({
+                    author: currentUser.nick,
+                    text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('noteText').value = '';
+                document.getElementById('addNoteCard').classList.remove('visible');
+                showToast('notatka dodana');
+            } catch (e) { showToast('błąd: ' + e.message); }
+        }
+
+        function openSettings() {
+            if (!currentUser) return showToast('zaloguj się');
+            document.getElementById('settingsModal').classList.add('active');
+        }
+        function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+        async function updateSettings() {
+            const newNick = document.getElementById('newNick').value.trim();
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmNewPassword').value;
+            if (!newNick && !newPass) return (document.getElementById('settingsError').innerText = 'wpisz nowy nick lub hasło');
+            if (newPass && newPass !== confirmPass) return (document.getElementById('settingsError').innerText = 'hasła nie są zgodne');
+            try {
+                if (newNick && newNick !== currentUser.nick) {
+                    if ((await db.collection('users').doc(newNick).get()).exists) return (document.getElementById('settingsError').innerText = 'nick zajęty');
+                    const userData = (await db.collection('users').doc(currentUser.nick).get()).data();
+                    const profileData = (await db.collection('profiles').doc(currentUser.nick).get()).data();
+                    const postsData = await db.collection('posts').where('author', '==', currentUser.nick).get();
+                    const notesData = await db.collection('notes').where('author', '==', currentUser.nick).get();
+                    await db.collection('users').doc(newNick).set({ ...userData, nick: newNick });
+                    await db.collection('profiles').doc(newNick).set({ ...profileData, nick: newNick });
+                    const batch = db.batch();
+                    postsData.forEach(d => batch.update(d.ref, { author: newNick }));
+                    notesData.forEach(d => batch.update(d.ref, { author: newNick }));
+                    await batch.commit();
+                    await db.collection('users').doc(currentUser.nick).delete();
+                    await db.collection('profiles').doc(currentUser.nick).delete();
+                    currentUser.nick = newNick;
+                    sessionStorage.setItem('fakegram_user_nick', newNick);
+                    document.getElementById('globalNickDisplay').innerHTML = `👋 jesteś jako <strong>${escapeHTML(newNick)}</strong>`;
+                    loadProfileIcon(newNick);
+                }
+                if (newPass) {
+                    const hashed = await hashPassword(newPass);
+                    await db.collection('users').doc(currentUser.nick).update({ passwordHash: hashed });
+                }
+                showToast('ustawienia zaktualizowane');
+                closeSettings();
+            } catch (e) { document.getElementById('settingsError').innerText = 'błąd: ' + e.message; }
+        }
     </script>
 </body>
 </html>
